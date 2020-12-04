@@ -1,10 +1,8 @@
-package main
+package day02
 
 import (
 	"bufio"
-	"flag"
 	"fmt"
-	"io"
 	"os"
 	"regexp"
 	"strconv"
@@ -22,10 +20,22 @@ type policyFunc func(e entry) bool
 
 var re = regexp.MustCompile(`(\d+)-(\d+)\s([a-z]):\s([a-z]+)`)
 
-func parseInputFile(filename string) ([]entry, error) {
-	file, err := os.Open(filename)
+func Resolve(puzzlePath string) ([]interface{}, error) {
+	entries, err := parsePuzzle(puzzlePath)
 	if err != nil {
-		return nil, fmt.Errorf("could not open file: %w", err)
+		return nil, err
+	}
+
+	return []interface{}{
+		getTotal(entries, isValidPasswordPolicyA),
+		getTotal(entries, isValidPasswordPolicyB),
+	}, nil
+}
+
+func parsePuzzle(path string) ([]entry, error) {
+	file, err := os.Open(path)
+	if err != nil {
+		return nil, err
 	}
 	defer file.Close()
 
@@ -46,11 +56,7 @@ func parseInputFile(filename string) ([]entry, error) {
 		entries = append(entries, entry{min, max, parsedLine[3], parsedLine[4]})
 	}
 
-	if err := scanner.Err(); err != nil {
-		return nil, fmt.Errorf("could not scan file: %w", err)
-	}
-
-	return entries, nil
+	return entries, scanner.Err()
 }
 
 func isValidPasswordPolicyA(e entry) bool {
@@ -72,38 +78,4 @@ func getTotal(entries []entry, p policyFunc) int {
 		}
 	}
 	return total
-}
-
-func run(args []string, stdout io.Writer) error {
-	var (
-		flags = flag.NewFlagSet(args[0], flag.ExitOnError)
-		test  = flags.Bool("t", false, "use input.test.txt")
-	)
-
-	if err := flags.Parse(args[1:]); err != nil {
-		return err
-	}
-
-	filename := "./input.txt"
-	if *test {
-		filename = "./input.test.txt"
-	}
-
-	entries, err := parseInputFile(filename)
-	if err != nil {
-		return err
-	}
-
-	resultP1 := getTotal(entries, isValidPasswordPolicyA)
-	resultP2 := getTotal(entries, isValidPasswordPolicyB)
-	fmt.Fprintf(stdout, "part 1: %d\npart 2: %d\n", resultP1, resultP2)
-
-	return nil
-}
-
-func main() {
-	if err := run(os.Args, os.Stdout); err != nil {
-		fmt.Fprintf(os.Stderr, "%s\n", err)
-		os.Exit(1)
-	}
 }

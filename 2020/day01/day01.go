@@ -1,18 +1,28 @@
-package main
+package day01
 
 import (
 	"bufio"
-	"flag"
 	"fmt"
-	"io"
 	"os"
 	"strconv"
 )
 
-func parseInputFile(filename string) ([]int, error) {
-	file, err := os.Open(filename)
+func Resolve(puzzlePath string) ([]interface{}, error) {
+	entries, err := parsePuzzle(puzzlePath)
 	if err != nil {
-		return nil, fmt.Errorf("could not open file: %w", err)
+		return nil, err
+	}
+
+	return []interface{}{
+		calculateMagicNumber(entries, []int{}, 2, 0),
+		calculateMagicNumber(entries, []int{}, 3, 0),
+	}, nil
+}
+
+func parsePuzzle(path string) ([]int, error) {
+	file, err := os.Open(path)
+	if err != nil {
+		return nil, err
 	}
 	defer file.Close()
 
@@ -26,11 +36,7 @@ func parseInputFile(filename string) ([]int, error) {
 		entries = append(entries, expense)
 	}
 
-	if err := scanner.Err(); err != nil {
-		return nil, fmt.Errorf("could not scan file: %w", err)
-	}
-
-	return entries, nil
+	return entries, scanner.Err()
 }
 
 func sum(entries, indexes []int) int {
@@ -68,38 +74,4 @@ func calculateMagicNumber(entries, indexes []int, n, startIndex int) int {
 	}
 
 	return -1
-}
-
-func run(args []string, stdout io.Writer) error {
-	var (
-		flags = flag.NewFlagSet(args[0], flag.ExitOnError)
-		test  = flags.Bool("t", false, "use input.test.txt")
-	)
-
-	if err := flags.Parse(args[1:]); err != nil {
-		return err
-	}
-
-	filename := "./input.txt"
-	if *test {
-		filename = "./input.test.txt"
-	}
-
-	entries, err := parseInputFile(filename)
-	if err != nil {
-		return err
-	}
-
-	resultP1 := calculateMagicNumber(entries, []int{}, 2, 0)
-	resultP2 := calculateMagicNumber(entries, []int{}, 3, 0)
-	fmt.Fprintf(stdout, "part 1: %d\npart 2: %d\n", resultP1, resultP2)
-
-	return nil
-}
-
-func main() {
-	if err := run(os.Args, os.Stdout); err != nil {
-		fmt.Fprintf(os.Stderr, "%s\n", err)
-		os.Exit(1)
-	}
 }
