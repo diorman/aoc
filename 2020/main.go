@@ -10,6 +10,7 @@ import (
 	"github.com/diorman/aoc/2020/day02"
 	"github.com/diorman/aoc/2020/day03"
 	"github.com/diorman/aoc/2020/day04"
+	"github.com/diorman/aoc/2020/day05"
 )
 
 type resolverFunc func(string) ([]interface{}, error)
@@ -19,6 +20,7 @@ var resolvers = []resolverFunc{
 	day02.Resolve,
 	day03.Resolve,
 	day04.Resolve,
+	day05.Resolve,
 }
 
 func run(args []string, stdout io.Writer) error {
