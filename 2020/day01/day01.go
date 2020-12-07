@@ -1,14 +1,12 @@
 package day01
 
 import (
-	"bufio"
-	"fmt"
-	"os"
+	"bytes"
 	"strconv"
 )
 
-func Resolve(puzzlePath string) ([]interface{}, error) {
-	entries, err := parsePuzzle(puzzlePath)
+func Resolve(input []byte) ([]interface{}, error) {
+	entries, err := parseInput(input)
 	if err != nil {
 		return nil, err
 	}
@@ -19,38 +17,35 @@ func Resolve(puzzlePath string) ([]interface{}, error) {
 	}, nil
 }
 
-func parsePuzzle(path string) ([]int, error) {
-	file, err := os.Open(path)
-	if err != nil {
-		return nil, err
-	}
-	defer file.Close()
+func parseInput(input []byte) ([]int, error) {
+	var (
+		lines   = bytes.Split(input, []byte("\n"))
+		entries = []int{}
+	)
 
-	entries := []int{}
-	scanner := bufio.NewScanner(file)
-	for scanner.Scan() {
-		expense, err := strconv.Atoi(scanner.Text())
+	for _, line := range lines {
+		expense, err := strconv.Atoi(string(line))
 		if err != nil {
-			return nil, fmt.Errorf("could not parse entry '%s': %w", scanner.Text(), err)
+			return nil, err
 		}
 		entries = append(entries, expense)
 	}
 
-	return entries, scanner.Err()
-}
-
-func sum(entries, indexes []int) int {
-	total := 0
-	for _, index := range indexes {
-		total += entries[index]
-	}
-	return total
+	return entries, nil
 }
 
 func multiply(entries, indexes []int) int {
 	total := 1
 	for _, index := range indexes {
 		total *= entries[index]
+	}
+	return total
+}
+
+func sum(entries, indexes []int) int {
+	total := 0
+	for _, index := range indexes {
+		total += entries[index]
 	}
 	return total
 }
@@ -64,7 +59,6 @@ func calculateMagicNumber(entries, indexes []int, n, startIndex int) int {
 			if res != -1 {
 				return res
 			}
-
 			continue
 		}
 

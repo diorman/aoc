@@ -1,16 +1,11 @@
 package day03
 
 import (
-	"bufio"
-	"os"
+	"bytes"
 )
 
-func Resolve(puzzlePath string) ([]interface{}, error) {
-	m, err := parsePuzzle(puzzlePath)
-	if err != nil {
-		return nil, err
-	}
-
+func Resolve(input []byte) ([]interface{}, error) {
+	m := parseInput(input)
 	return []interface{}{
 		countTrees(m, 3, 1),
 		countTrees(m, 1, 1) *
@@ -21,42 +16,37 @@ func Resolve(puzzlePath string) ([]interface{}, error) {
 	}, nil
 }
 
-func parsePuzzle(puzzlePath string) ([][]int, error) {
-	file, err := os.Open(puzzlePath)
-	if err != nil {
-		return nil, err
-	}
-	defer file.Close()
+func parseInput(input []byte) [][]int {
+	var (
+		m    [][]int
+		rows = bytes.Split(input, []byte("\n"))
+	)
 
-	m := [][]int{}
-	scanner := bufio.NewScanner(file)
-	for scanner.Scan() {
-		row := make([]int, len(scanner.Text()))
-		for i, c := range scanner.Text() {
+	for _, row := range rows {
+		r := make([]int, len(row))
+		for i, c := range row {
 			if c == '#' {
-				row[i] = 1
+				r[i] = 1
 			}
 		}
-
-		m = append(m, row)
+		m = append(m, r)
 	}
 
-	return m, scanner.Err()
+	return m
 }
 
 func countTrees(m [][]int, right, down int) int {
 	var (
-		x     = right
-		width = len(m[0])
-		total = 0
+		column = right
+		width  = len(m[0])
+		total  = 0
 	)
 
-	for y := down; y < len(m); y += down {
-		total += m[y][x]
-
-		x += right
-		if x >= width {
-			x -= width
+	for row := down; row < len(m); row += down {
+		total += m[row][column]
+		column += right
+		if column >= width {
+			column -= width
 		}
 	}
 

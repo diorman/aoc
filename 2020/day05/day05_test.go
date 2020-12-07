@@ -4,12 +4,12 @@ import "testing"
 
 func TestGetTicketID(t *testing.T) {
 	tests := []struct {
-		ticket string
+		ticket []byte
 		id     int
 	}{
-		{"BFFFBBFRRR", 567},
-		{"FFFBBBFRRR", 119},
-		{"BBFFBBFRLL", 820},
+		{[]byte("BFFFBBFRRR"), 567},
+		{[]byte("FFFBBBFRRR"), 119},
+		{[]byte("BBFFBBFRLL"), 820},
 	}
 
 	for _, tt := range tests {

@@ -1,9 +1,8 @@
 package day04
 
 import (
-	"bufio"
+	"bytes"
 	"fmt"
-	"os"
 	"regexp"
 	"strconv"
 	"strings"
@@ -13,15 +12,13 @@ type passportMap map[string]string
 
 type validatorFunc func(passportMap) bool
 
-var passwordRegex = regexp.MustCompile(`\s([a-z]{3}):(\S+)`)
+var (
+	passwordRegex  = regexp.MustCompile(`(?:^|\n|\s)([a-z]{3}):(\S+)`)
+	requiredFields = []string{"byr", "iyr", "eyr", "hgt", "hcl", "ecl", "pid"}
+)
 
-var requiredFields = []string{"byr", "iyr", "eyr", "hgt", "hcl", "ecl", "pid"}
-
-func Resolve(puzzlePath string) ([]interface{}, error) {
-	passports, err := parsePuzzle(puzzlePath)
-	if err != nil {
-		return nil, err
-	}
+func Resolve(input []byte) ([]interface{}, error) {
+	passports := parseInput(input)
 
 	return []interface{}{
 		countValidPasswords(passports, hasRequiredFields),
@@ -31,42 +28,23 @@ func Resolve(puzzlePath string) ([]interface{}, error) {
 
 func parseRawPassport(rawPassport string) passportMap {
 	passport := make(passportMap)
-
 	for _, match := range passwordRegex.FindAllStringSubmatch(rawPassport, -1) {
 		passport[match[1]] = match[2]
 	}
-
 	return passport
 }
 
-func parsePuzzle(parsePuzzle string) ([]passportMap, error) {
-	file, err := os.Open(parsePuzzle)
-	if err != nil {
-		return nil, err
-	}
-	defer file.Close()
+func parseInput(input []byte) []passportMap {
+	var (
+		rawPassports = bytes.Split(input, []byte("\n\n"))
+		passports    = []passportMap{}
+	)
 
-	passports := []passportMap{}
-	rawPassport := ""
-
-	scanner := bufio.NewScanner(file)
-	for scanner.Scan() {
-		line := scanner.Text()
-
-		if line != "" {
-			rawPassport = fmt.Sprintf("%s %s", rawPassport, line)
-			continue
-		}
-
-		passports = append(passports, parseRawPassport(rawPassport))
-		rawPassport = ""
+	for _, rp := range rawPassports {
+		passports = append(passports, parseRawPassport(string(rp)))
 	}
 
-	if rawPassport != "" {
-		passports = append(passports, parseRawPassport(rawPassport))
-	}
-
-	return passports, scanner.Err()
+	return passports
 }
 
 func hasRequiredFields(p passportMap) bool {
